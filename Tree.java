@@ -6,29 +6,58 @@ import java.lang.Math;
  */
 public class Tree<K, V> {
     private TreeNode<K, V> root;
+    private Comparator<K> comparator;
 
-    public Tree (K key, V value, Comparator<? super K> comparator) {
+    public Tree (Comparator<K> comparator) {
+        this.comparator = comparator;
+        root = null;
+    }
+
+    public Tree (K key, V value, Comparator<K> comparator) {
+        this.comparator = comparator;
         root = TreeNode.makeRoot(key, value, comparator);
     }
 
     public void add (K key, V value) {
-        root.add(key, value);
-        //if the root was changed by rotation
-        root = root.searchRoot();
+        if (root == null) {
+            root = TreeNode.makeRoot(key, value, comparator);
+        }
+        else {
+            root.add(key, value);
+            //if the root was changed by rotation
+            root = root.searchRoot();
+        }
     }
 
     public void delete (K key) {
-        root.delete(key);
-        //if the root was changed by rotation
-        root = root.searchRoot();
+        if (root != null) {
+            if (root.getLeftChild() == null && root.getRightChild() == null && root.getKey() == key) {
+                root = null;
+            }
+            else {
+                root.delete(key);
+                //if the root was changed by rotation
+                root = root.searchRoot();
+            }
+        }
     }
 
     public V search(K key) {
-        return root.search(key);
+        if (root != null) {
+            return root.search(key);
+        }
+        else {
+            return null;
+        }
     }
 
     public void paintTree() {
-        root.paintTree();
+        if (root != null) {
+            root.paintTree();
+        }
+        else {
+            System.out.println("_");
+        }
     }
 }
 class TreeNode<K, V> {
@@ -38,9 +67,9 @@ class TreeNode<K, V> {
     private TreeNode rightChild;
     private K key;
     private V value;
-    private Comparator<? super K> comparator;
+    private Comparator<K> comparator;
 
-    private TreeNode(int h, TreeNode parent, TreeNode leftChild, TreeNode rightChild, K key, V value, Comparator<? super K> comparator) {
+    private TreeNode(int h, TreeNode parent, TreeNode leftChild, TreeNode rightChild, K key, V value, Comparator<K> comparator) {
         this.h = h;
         this.parent = parent;
         this.leftChild = leftChild;
@@ -50,7 +79,7 @@ class TreeNode<K, V> {
         this.comparator = comparator;
     }
 
-    public static <K, V> TreeNode<K, V> makeRoot(K key, V value, Comparator<? super K> comparator) {
+    public static <K, V> TreeNode<K, V> makeRoot(K key, V value, Comparator<K> comparator) {
         return new TreeNode<>(1, null, null, null, key, value, comparator);
     }
 
@@ -377,9 +406,6 @@ class TreeNode<K, V> {
                 }
                 parent.balancing();
             }
-            else {
-                throw new LastTreeNodeDeletionException();
-            }
         }
         else if (leftChild != null && rightChild == null) {
             key = (K)leftChild.key;
@@ -461,6 +487,16 @@ class TreeNode<K, V> {
             return parent.searchRoot();
         }
     }
-}
 
-class LastTreeNodeDeletionException extends RuntimeException {}
+    K getKey() {
+        return key;
+    }
+
+    TreeNode<K, V> getLeftChild() {
+        return leftChild;
+    }
+
+    TreeNode<K, V> getRightChild() {
+        return rightChild;
+    }
+}
